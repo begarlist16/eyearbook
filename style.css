@@ -19,7 +19,7 @@
   --trans:     0.2s ease;
 
   --bar-h:     56px;
-  --ctrl-h:    48px; /* top controls height */
+  --ctrl-h:    48px;
 }
 
 [data-theme="light"] {
@@ -160,7 +160,7 @@ body {
   max-width: 60vw;
 }
 
-/* ── SPREAD OUTER (zoomable area) ── */
+/* ── SPREAD OUTER (zoomable + pannable area) ── */
 .spread-outer {
   position: relative;
   flex: 1;
@@ -172,15 +172,19 @@ body {
   padding: var(--ctrl-h) 0 var(--bar-h);
 }
 
-/* Zoomable container */
+/* Grab cursor when zoomed in */
+.spread-outer.zoomed   { cursor: grab; }
+.spread-outer.dragging { cursor: grabbing; }
+
+/* Zoomable + pannable container */
 .spread-container {
   display: flex;
   align-items: stretch;
   transform-origin: center center;
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  /* Size governed by JS */
+  /* transform managed entirely by JS (zoom + pan) */
   max-width: calc(100vw - 40px);
   max-height: calc(100vh - var(--ctrl-h) - var(--bar-h) - 24px);
+  will-change: transform;
 }
 
 /* ── PAGE SLOTS ── */
@@ -192,38 +196,18 @@ body {
   background: var(--bg2);
 }
 
-/* Seamless: left page right-aligned, right page left-aligned */
 .left-page  { border-radius: 3px 0 0 3px; justify-content: flex-end; }
 .right-page { border-radius: 0 3px 3px 0; justify-content: flex-start; }
 
-/* Subtle spine shadow */
-.left-page::after {
-  content: '';
-  position: absolute;
-  right: 0; top: 0; bottom: 0;
-  width: 18px;
-  background: linear-gradient(to left, rgba(0,0,0,0.22), transparent);
-  pointer-events: none;
-  z-index: 2;
-}
-.right-page::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 18px;
-  background: linear-gradient(to right, rgba(0,0,0,0.22), transparent);
-  pointer-events: none;
-  z-index: 2;
-}
+/* Spine shadows REMOVED — clean seamless join */
 
-/* Single-page mode (portrait mobile): hide right, full-width left */
+/* Single-page mode (portrait mobile) */
 body.single-page .right-page { display: none; }
 body.single-page .left-page  {
   border-radius: 3px;
   flex: 1;
   justify-content: center;
 }
-body.single-page .left-page::after { display: none; }
 
 .page-inner {
   position: relative;
@@ -243,24 +227,10 @@ body.single-page .left-page::after { display: none; }
   z-index: 1;
   transition: opacity 0.25s ease;
   drag: none;
+  pointer-events: none; /* prevent image drag interfering with pan */
 }
 
-/* Page number badge */
-.page-num {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 11px;
-  color: var(--text3);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 2px 10px;
-  z-index: 3;
-  opacity: 0.7;
-  white-space: nowrap;
-}
+/* Page number badges REMOVED */
 
 /* Skeleton shimmer */
 .page-skeleton {
@@ -512,19 +482,58 @@ mark {
 }
 .zoom-hint.show { opacity: 1; }
 
-/* ── TURN ANIMATION ── */
-.spread-container.turn-left  { animation: turnLeft  0.3s cubic-bezier(0.22,1,0.36,1) both; }
-.spread-container.turn-right { animation: turnRight 0.3s cubic-bezier(0.22,1,0.36,1) both; }
-@keyframes turnLeft  {
-  0%   { opacity: 1; transform: scale(1) translateX(0); }
-  40%  { opacity: 0; transform: scale(0.96) translateX(-3%); }
-  100% { opacity: 1; transform: scale(1) translateX(0); }
+/* ── FLIP ANIMATION ── */
+/* The actual flip uses a 3-layer approach:
+   - .flip-overlay sits on top, covers the turning page half
+   - We animate it with a 3D card-turn effect              */
+
+.flip-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 150;
+  perspective: 1800px;
 }
-@keyframes turnRight {
-  0%   { opacity: 1; transform: scale(1) translateX(0); }
-  40%  { opacity: 0; transform: scale(0.96) translateX(3%); }
-  100% { opacity: 1; transform: scale(1) translateX(0); }
+
+.flip-card {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 50%;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
+.flip-card.flip-from-right { right: 0; transform-origin: left center; }
+.flip-card.flip-from-left  { left: 0;  transform-origin: right center; }
+
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+.flip-face img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.flip-face-back {
+  transform: rotateY(180deg);
+}
+
+/* Flip-next: right half folds to the left */
+@keyframes flipNext {
+  0%   { transform: rotateY(0deg);    box-shadow: none; }
+  100% { transform: rotateY(-180deg); box-shadow: none; }
+}
+/* Flip-prev: left half folds to the right */
+@keyframes flipPrev {
+  0%   { transform: rotateY(0deg);    box-shadow: none; }
+  100% { transform: rotateY(180deg);  box-shadow: none; }
+}
+
+.flip-card.animating-next { animation: flipNext 0.42s cubic-bezier(0.4,0,0.2,1) forwards; }
+.flip-card.animating-prev { animation: flipPrev 0.42s cubic-bezier(0.4,0,0.2,1) forwards; }
 
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -544,7 +553,7 @@ mark {
   .book-title-text { font-size: 12px; max-width: 50vw; }
 }
 
-/* Progress bar at top of book area */
+/* Progress bar at top */
 .progress-bar {
   position: fixed;
   top: 0;
