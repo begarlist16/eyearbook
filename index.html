@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Begarlist 16 — Ebook Reader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- PAGE LOADER -->
+  <div class="page-loader" id="pageLoader">
+    <div class="loader-ring"></div>
+    <span class="loader-text">Memuat Buku…</span>
+  </div>
+
+  <!-- READER WRAP -->
+  <div class="reader-wrap" id="readerWrap">
+
+    <!-- TOP-LEFT CONTROLS -->
+    <div class="top-controls">
+      <a href="https://begarlist16.github.io" class="home-btn" title="Kembali ke Homepage">
+        <span class="home-emoji">🏠</span>
+      </a>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <span id="themeIcon">☀</span>
+      </button>
+    </div>
+
+    <!-- BOOK TITLE (top center, subtle) -->
+    <div class="book-title-bar" id="bookTitleBar">
+      <span class="book-title-text" id="bookTitleText"></span>
+    </div>
+
+    <!-- SPREAD CONTAINER -->
+    <div class="spread-outer" id="spreadOuter">
+      <div class="spread-container" id="spreadContainer">
+
+        <!-- LEFT PAGE -->
+        <div class="page-slot left-page" id="leftPage">
+          <div class="page-inner">
+            <div class="page-skeleton" id="leftSkeleton"></div>
+            <img id="leftImg" src="" alt="Halaman kiri" draggable="false" />
+            <div class="page-num" id="leftNum"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT PAGE -->
+        <div class="page-slot right-page" id="rightPage">
+          <div class="page-inner">
+            <div class="page-skeleton" id="rightSkeleton"></div>
+            <img id="rightImg" src="" alt="Halaman kanan" draggable="false" />
+            <div class="page-num" id="rightNum"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CLICK ZONES for page turn -->
+      <div class="click-zone click-prev" id="clickPrev" onclick="prevSpread()" title="Halaman sebelumnya"></div>
+      <div class="click-zone click-next" id="clickNext" onclick="nextSpread()" title="Halaman berikutnya"></div>
+    </div>
+
+    <!-- BOTTOM TOOLBAR -->
+    <div class="bottom-bar" id="bottomBar">
+
+      <!-- Left cluster: nav -->
+      <div class="bar-cluster bar-left">
+        <button class="bar-btn nav-btn" id="btnPrev" onclick="prevSpread()" title="Sebelumnya (←)">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"/></svg>
+        </button>
+
+        <!-- Page indicator / jump input -->
+        <div class="page-indicator">
+          <input type="number" id="pageJumpInput" class="page-jump-input" min="1" title="Lompat ke halaman" onchange="jumpToPage(this.value)" onkeydown="if(event.key==='Enter') jumpToPage(this.value)" />
+          <span class="page-sep">/</span>
+          <span class="page-total" id="pageTotal"></span>
+        </div>
+
+        <button class="bar-btn nav-btn" id="btnNext" onclick="nextSpread()" title="Berikutnya (→)">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
+        </button>
+      </div>
+
+      <!-- Center cluster: search -->
+      <div class="bar-cluster bar-center">
+        <div class="search-wrap" id="searchWrap">
+          <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
+          </svg>
+          <input
+            type="text"
+            id="searchInput"
+            class="search-input"
+            placeholder="Cari halaman…"
+            oninput="handleSearch(this.value)"
+            onkeydown="handleSearchKey(event)"
+            autocomplete="off"
+          />
+          <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display:none">✕</button>
+        </div>
+
+        <!-- Search results dropdown -->
+        <div class="search-results" id="searchResults"></div>
+      </div>
+
+      <!-- Right cluster: zoom + fullscreen -->
+      <div class="bar-cluster bar-right">
+        <button class="bar-btn" id="btnZoomOut" onclick="adjustZoom(-0.15)" title="Perkecil (-)">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
+        </button>
+        <span class="zoom-label" id="zoomLabel">100%</span>
+        <button class="bar-btn" id="btnZoomIn" onclick="adjustZoom(0.15)" title="Perbesar (+)">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/></svg>
+        </button>
+        <button class="bar-btn" id="btnFull" onclick="toggleFullscreen()" title="Layar Penuh (F)">
+          <svg id="fullIcon" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3 4a1 1 0 011-1h4a1 1 0 010 2H5.414l2.293 2.293a1 1 0 11-1.414 1.414L4 6.414V8a1 1 0 01-2 0V4zm14 0a1 1 0 00-1-1h-4a1 1 0 000 2h1.586l-2.293 2.293a1 1 0 001.414 1.414L15 6.414V8a1 1 0 002 0V4zM3 16a1 1 0 001 1h4a1 1 0 000-2H6.414l2.293-2.293a1 1 0 00-1.414-1.414L5 13.586V12a1 1 0 00-2 0v4zm14 0a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 011.414-1.414L15 13.586V12a1 1 0 012 0v4z"/>
+          </svg>
+        </button>
+      </div>
+
+    </div><!-- /bottom-bar -->
+
+  </div><!-- /reader-wrap -->
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
