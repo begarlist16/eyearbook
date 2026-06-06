@@ -199,7 +199,12 @@ body {
 .left-page  { border-radius: 3px 0 0 3px; justify-content: flex-end; }
 .right-page { border-radius: 0 3px 3px 0; justify-content: flex-start; }
 
-/* Spine shadows REMOVED — clean seamless join */
+/* Align images to the spine so pages butt up with no gap */
+.left-page  .page-inner img { object-position: right center; }
+.right-page .page-inner img { object-position: left center; }
+
+/* Zero gap between the two slots */
+.spread-container { gap: 0; }
 
 /* Single-page mode (portrait mobile) */
 body.single-page .right-page { display: none; }
@@ -223,6 +228,7 @@ body.single-page .left-page  {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: center;
   position: relative;
   z-index: 1;
   transition: opacity 0.25s ease;
