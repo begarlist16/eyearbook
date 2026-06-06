@@ -55,20 +55,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedSpread = parseInt(localStorage.getItem('bg16-spread') || '0');
   currentSpread = savedSpread;
 
-  // Preload initial spread + neighbors before first render
-  preloadAround(currentSpread, () => {
-    renderSpread(false);
-    preloadNeighbors(currentSpread);
-  });
+  // Render immediately (skeletons show while images load in background)
+  renderSpread(false);
+
+  // Hide loader right away — no waiting for external images
+  hideLoader();
+
+  // Preload neighbors in background
+  preloadNeighbors(currentSpread);
 
   document.addEventListener('keydown', handleKey);
   initTouch();
   initPinch();
   initPan();
   document.addEventListener('wheel', handleWheel, { passive: false });
-
-  window.addEventListener('load', hideLoader);
-  setTimeout(hideLoader, 2000);
 
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#searchWrap') && !e.target.closest('#searchResults')) {
@@ -79,10 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function hideLoader() {
   const loader = document.getElementById('pageLoader');
-  if (loader && !loader.classList.contains('hidden')) {
-    loader.classList.add('hidden');
-    setTimeout(() => loader.style.display = 'none', 400);
-  }
+  if (!loader) return;
+  loader.classList.add('hidden');
+  loader.style.opacity = '0';
+  loader.style.pointerEvents = 'none';
+  setTimeout(() => { if (loader.parentNode) loader.parentNode.removeChild(loader); }, 450);
 }
 
 // ── THEME ─────────────────────────────────────────────────────
