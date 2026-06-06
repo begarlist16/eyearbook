@@ -17,7 +17,7 @@
 const BOOK = {
   title: "Buku Tahunan Begarlist 16",
   author: "AbankIrenk & Begarlist 16",
-  cover: "https://lh3.googleusercontent.com/d/[File1LV84D3pcCcNdqpd9shG8iKttevzjAtcY=w9999", // opsional: URL gambar cover untuk tab browser
+  cover: "https://lh3.googleusercontent.com/d/1LV84D3pcCcNdqpd9shG8iKttevzjAtcY=w9999", // opsional: URL gambar cover untuk tab browser
   totalPages: 92
 };
 
