@@ -165,14 +165,7 @@ function doFlip(direction, afterFlip) {
   isAnimating = true;
 
   const step  = isSinglePage ? 1 : 2;
-  const total = PAGES.length;
   const overlay = document.getElementById('flipOverlay');
-
-  const sc   = document.getElementById('spreadContainer');
-  const rect = sc.getBoundingClientRect();
-
-  const curLeft  = PAGES[currentSpread]     ? PAGES[currentSpread].src + '=w9999-h9999'     : null;
-  const curRight = PAGES[currentSpread + 1] ? PAGES[currentSpread + 1].src + '=w9999-h9999' : null;
 
   const nextSpreadIdx = _jumpTarget !== null
     ? _jumpTarget
@@ -180,11 +173,89 @@ function doFlip(direction, afterFlip) {
         ? currentSpread + step
         : Math.max(0, currentSpread - step));
 
+  const isNext = direction === 'next';
+
+  // ── SINGLE-PAGE MODE: slide animation ────────────────────
+  if (isSinglePage) {
+    const sc   = document.getElementById('spreadContainer');
+    const rect = sc.getBoundingClientRect();
+    const W    = rect.width;
+
+    const curSrc = PAGES[currentSpread] ? PAGES[currentSpread].src + '=w9999-h9999' : null;
+    const nxtSrc = PAGES[nextSpreadIdx] ? PAGES[nextSpreadIdx].src + '=w9999-h9999' : null;
+
+    const DURATION = 320;
+
+    // Outgoing page (current, slides out)
+    const outCard = document.createElement('div');
+    outCard.style.cssText = `
+      position: fixed;
+      top: ${rect.top}px; left: ${rect.left}px;
+      width: ${W}px; height: ${rect.height}px;
+      overflow: hidden; background: var(--bg2);
+      will-change: transform;
+      transition: transform ${DURATION}ms cubic-bezier(0.4,0,0.2,1);
+      z-index: 151;
+    `;
+    if (curSrc) {
+      const img = document.createElement('img');
+      img.src = curSrc;
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block;';
+      outCard.appendChild(img);
+    }
+
+    // Incoming page (next, slides in from opposite side)
+    const inCard = document.createElement('div');
+    inCard.style.cssText = `
+      position: fixed;
+      top: ${rect.top}px; left: ${rect.left}px;
+      width: ${W}px; height: ${rect.height}px;
+      overflow: hidden; background: var(--bg2);
+      will-change: transform;
+      transform: translateX(${isNext ? W : -W}px);
+      transition: transform ${DURATION}ms cubic-bezier(0.4,0,0.2,1);
+      z-index: 150;
+    `;
+    if (nxtSrc) {
+      const img = document.createElement('img');
+      img.src = nxtSrc;
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block;';
+      inCard.appendChild(img);
+    }
+
+    overlay.appendChild(outCard);
+    overlay.appendChild(inCard);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        outCard.style.transform = `translateX(${isNext ? -W : W}px)`;
+        inCard.style.transform  = 'translateX(0)';
+      });
+    });
+
+    setTimeout(() => {
+      currentSpread = nextSpreadIdx;
+      _jumpTarget   = null;
+      renderSpread(false);
+      overlay.innerHTML = '';
+      isAnimating = false;
+      afterFlip && afterFlip();
+    }, DURATION + 40);
+
+    return true;
+  }
+
+  // ── DOUBLE-PAGE MODE: flip animation (original) ──────────
+  const sc   = document.getElementById('spreadContainer');
+  const rect = sc.getBoundingClientRect();
+
+  const curLeft  = PAGES[currentSpread]     ? PAGES[currentSpread].src + '=w9999-h9999'     : null;
+  const curRight = PAGES[currentSpread + 1] ? PAGES[currentSpread + 1].src + '=w9999-h9999' : null;
+
   const nxtLeft  = PAGES[nextSpreadIdx]     ? PAGES[nextSpreadIdx].src + '=w9999-h9999'     : null;
   const nxtRight = PAGES[nextSpreadIdx + 1] ? PAGES[nextSpreadIdx + 1].src + '=w9999-h9999' : null;
 
-  const isNext = direction === 'next';
-  const halfW  = rect.width / (isSinglePage ? 1 : 2);
+  const halfW = rect.width / 2;
 
   const card = document.createElement('div');
   card.className = 'flip-card ' + (isNext ? 'flip-from-right' : 'flip-from-left');
@@ -192,7 +263,7 @@ function doFlip(direction, afterFlip) {
     position: fixed;
     top: ${rect.top}px;
     ${isNext
-      ? 'left:' + (rect.left + (isSinglePage ? 0 : rect.width / 2)) + 'px'
+      ? 'left:' + (rect.left + rect.width / 2) + 'px'
       : 'left:' + rect.left + 'px'};
     width: ${halfW}px;
     height: ${rect.height}px;
@@ -203,7 +274,7 @@ function doFlip(direction, afterFlip) {
 
   const front = document.createElement('div');
   front.style.cssText = 'position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;background:var(--bg2)';
-  if (isNext && curRight && !isSinglePage) {
+  if (isNext && curRight) {
     const fi = document.createElement('img');
     fi.src = curRight;
     fi.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block;';
