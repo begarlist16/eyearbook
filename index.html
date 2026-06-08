@@ -30,11 +30,6 @@
       </button>
     </div>
 
-    <!-- BOOK TITLE (top center, subtle) -->
-    <div class="book-title-bar" id="bookTitleBar">
-      <span class="book-title-text" id="bookTitleText"></span>
-    </div>
-
     <!-- SPREAD CONTAINER -->
     <div class="spread-outer" id="spreadOuter">
       <div class="spread-container" id="spreadContainer">
@@ -87,6 +82,7 @@
 
       <!-- Center cluster: search -->
       <div class="bar-cluster bar-center">
+        <!-- Desktop search (hidden on mobile) -->
         <div class="search-wrap" id="searchWrap">
           <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
@@ -103,7 +99,14 @@
           <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display:none">✕</button>
         </div>
 
-        <!-- Search results dropdown -->
+        <!-- Mobile search button (hidden on desktop) -->
+        <button class="bar-btn mobile-search-btn" id="mobileSearchBtn" onclick="openMobileSearch()" title="Cari halaman">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
+          </svg>
+        </button>
+
+        <!-- Search results dropdown (desktop only) -->
         <div class="search-results" id="searchResults"></div>
       </div>
 
@@ -126,6 +129,29 @@
     </div><!-- /bottom-bar -->
 
   </div><!-- /reader-wrap -->
+
+  <!-- MOBILE SEARCH MODAL -->
+  <div class="mobile-search-modal" id="mobileSearchModal">
+    <div class="mobile-search-header">
+      <div class="mobile-search-input-wrap">
+        <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
+        </svg>
+        <input
+          type="text"
+          id="mobileSearchInput"
+          class="search-input"
+          placeholder="Cari halaman…"
+          oninput="handleMobileSearch(this.value)"
+          onkeydown="handleMobileSearchKey(event)"
+          autocomplete="off"
+        />
+        <button class="search-clear" id="mobileSearchClear" onclick="clearMobileSearch()" style="display:none">✕</button>
+      </div>
+      <button class="mobile-search-close" onclick="closeMobileSearch()">Batal</button>
+    </div>
+    <div class="mobile-search-results" id="mobileSearchResults"></div>
+  </div>
 
   <script src="data.js"></script>
   <script src="app.js"></script>

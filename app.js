@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('bg16-theme') || 'dark';
   setTheme(saved);
 
-  document.getElementById('bookTitleText').textContent = BOOK.title;
   document.title = BOOK.title + ' — Ebook Reader';
   document.getElementById('pageTotal').textContent = PAGES.length;
 
@@ -141,22 +140,23 @@ function loadPage(side, pageIndex) {
   }
 
   const page = PAGES[pageIndex];
+  const fullSrc = page.src + '=w9999-h9999';
   skeleton.classList.remove('hidden');
   img.style.opacity = '0';
 
   const temp = new Image();
   temp.onload = () => {
-    img.src = page.src;
+    img.src = fullSrc;
     img.alt = 'Halaman ' + page.page;
     img.style.opacity = '1';
     skeleton.classList.add('hidden');
   };
   temp.onerror = () => {
-    img.src = page.src;
+    img.src = fullSrc;
     img.style.opacity = '0.4';
     skeleton.classList.add('hidden');
   };
-  temp.src = page.src;
+  temp.src = fullSrc;
 }
 
 // ── FLIP ANIMATION ────────────────────────────────────────────
@@ -171,8 +171,8 @@ function doFlip(direction, afterFlip) {
   const sc   = document.getElementById('spreadContainer');
   const rect = sc.getBoundingClientRect();
 
-  const curLeft  = PAGES[currentSpread]     ? PAGES[currentSpread].src     : null;
-  const curRight = PAGES[currentSpread + 1] ? PAGES[currentSpread + 1].src : null;
+  const curLeft  = PAGES[currentSpread]     ? PAGES[currentSpread].src + '=w9999-h9999'     : null;
+  const curRight = PAGES[currentSpread + 1] ? PAGES[currentSpread + 1].src + '=w9999-h9999' : null;
 
   const nextSpreadIdx = _jumpTarget !== null
     ? _jumpTarget
@@ -180,8 +180,8 @@ function doFlip(direction, afterFlip) {
         ? currentSpread + step
         : Math.max(0, currentSpread - step));
 
-  const nxtLeft  = PAGES[nextSpreadIdx]     ? PAGES[nextSpreadIdx].src     : null;
-  const nxtRight = PAGES[nextSpreadIdx + 1] ? PAGES[nextSpreadIdx + 1].src : null;
+  const nxtLeft  = PAGES[nextSpreadIdx]     ? PAGES[nextSpreadIdx].src + '=w9999-h9999'     : null;
+  const nxtRight = PAGES[nextSpreadIdx + 1] ? PAGES[nextSpreadIdx + 1].src + '=w9999-h9999' : null;
 
   const isNext = direction === 'next';
   const halfW  = rect.width / (isSinglePage ? 1 : 2);
@@ -504,7 +504,7 @@ function performSearch(query) {
       const item = document.createElement('div');
       item.className = 'search-result-item';
       item.innerHTML = `
-        <img class="sri-thumb" src="${escHtml(p.src)}" alt="hal ${p.page}" loading="lazy" />
+        <img class="sri-thumb" src="${escHtml(p.src)}=w200-h200" alt="hal ${p.page}" loading="lazy" />
         <div class="sri-info">
           <div class="sri-page">Halaman ${p.page}</div>
           <div class="sri-desc">${highlightMatch(p.description, q)}</div>
@@ -536,6 +536,71 @@ function closeSearchResults() {
   const r = document.getElementById('searchResults');
   r.classList.remove('open');
   r.innerHTML = '';
+}
+
+// ── MOBILE SEARCH ────────────────────────────────────────────
+let mobileSearchDebounce = null;
+
+function openMobileSearch() {
+  const modal = document.getElementById('mobileSearchModal');
+  modal.classList.add('open');
+  setTimeout(() => {
+    const input = document.getElementById('mobileSearchInput');
+    input.focus();
+  }, 280);
+}
+
+function closeMobileSearch() {
+  const modal = document.getElementById('mobileSearchModal');
+  modal.classList.remove('open');
+  clearMobileSearch();
+}
+
+function handleMobileSearch(val) {
+  document.getElementById('mobileSearchClear').style.display = val ? 'block' : 'none';
+  clearTimeout(mobileSearchDebounce);
+  const container = document.getElementById('mobileSearchResults');
+  if (!val.trim()) { container.innerHTML = ''; return; }
+  mobileSearchDebounce = setTimeout(() => performMobileSearch(val.trim()), 180);
+}
+
+function performMobileSearch(query) {
+  const q = query.toLowerCase();
+  const results = PAGES.filter(p =>
+    p.description.toLowerCase().includes(q) || String(p.page).includes(q)
+  );
+  const container = document.getElementById('mobileSearchResults');
+  container.innerHTML = '';
+  if (results.length === 0) {
+    container.innerHTML = `<div class="search-empty">Tidak ada hasil untuk "<strong>${escHtml(query)}</strong>"</div>`;
+  } else {
+    results.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'search-result-item';
+      item.innerHTML = `
+        <img class="sri-thumb" src="${escHtml(p.src)}=w200-h200" alt="hal ${p.page}" loading="lazy" />
+        <div class="sri-info">
+          <div class="sri-page">Halaman ${p.page}</div>
+          <div class="sri-desc">${highlightMatch(p.description, q)}</div>
+        </div>`;
+      item.addEventListener('click', () => { closeMobileSearch(); goToPage(p.page); });
+      container.appendChild(item);
+    });
+  }
+}
+
+function handleMobileSearchKey(e) {
+  if (e.key === 'Escape') closeMobileSearch();
+  if (e.key === 'Enter') {
+    const f = document.querySelector('#mobileSearchResults .search-result-item');
+    if (f) f.click();
+  }
+}
+
+function clearMobileSearch() {
+  document.getElementById('mobileSearchInput').value = '';
+  document.getElementById('mobileSearchClear').style.display = 'none';
+  document.getElementById('mobileSearchResults').innerHTML = '';
 }
 
 // ── UTILS ────────────────────────────────────────────────────
