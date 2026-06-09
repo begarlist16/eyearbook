@@ -153,12 +153,27 @@
   <!-- LIGHTBOX OVERLAY -->
   <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightboxOnBackdrop(event)">
     <button class="lightbox-close" onclick="closeLightbox()" title="Tutup (Esc)">✕</button>
-    <button class="lightbox-nav lightbox-prev" id="lightboxPrev" onclick="lightboxNav(-1)" title="Sebelumnya">&#8249;</button>
-    <button class="lightbox-nav lightbox-next" id="lightboxNext" onclick="lightboxNav(1)" title="Berikutnya">&#8250;</button>
-    <div class="lightbox-inner" id="lightboxInner">
+
+    <!-- Zoom level buttons -->
+    <div class="lightbox-zoom-bar" id="lightboxZoomBar">
+      <button class="lbz-btn" onclick="setLightboxZoom(0.25)" data-zoom="25">25%</button>
+      <button class="lbz-btn" onclick="setLightboxZoom(0.50)" data-zoom="50">50%</button>
+      <button class="lbz-btn" onclick="setLightboxZoom(0.75)" data-zoom="75">75%</button>
+      <button class="lbz-btn" onclick="setLightboxZoom(1.00)" data-zoom="100">100%</button>
+    </div>
+
+    <!-- Pan canvas -->
+    <div class="lightbox-canvas" id="lightboxCanvas">
       <img class="lightbox-img" id="lightboxImg" src="" alt="Halaman penuh" draggable="false" />
       <div class="lightbox-spinner" id="lightboxSpinner"></div>
     </div>
+
+    <!-- Minimap preview -->
+    <div class="lightbox-minimap" id="lightboxMinimap">
+      <canvas id="lightboxMinimapCanvas"></canvas>
+      <div class="lbm-viewport" id="lightboxMinimapViewport"></div>
+    </div>
+
     <div class="lightbox-caption" id="lightboxCaption"></div>
   </div>
 
