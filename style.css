@@ -781,3 +781,66 @@ mark {
   .lightbox-prev { left: 4px; }
   .lightbox-next { right: 4px; }
 }
+
+/* ── HD OVERLAY ── */
+.page-inner {
+  position: relative;
+}
+
+.hd-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  cursor: zoom-in;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.hd-overlay:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.hd-label {
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+[data-theme="light"] .hd-label {
+  background: rgba(255, 255, 255, 0.85);
+  color: #111;
+  border-color: rgba(0,0,0,0.12);
+}
+
+/* Hide overlay when page has no image */
+.page-slot:not(.has-image) .hd-overlay {
+  display: none;
+}
+
+/* On touch devices: always show overlay subtly */
+@media (hover: none) {
+  .hd-overlay {
+    opacity: 1;
+    background: transparent;
+  }
+  .hd-label {
+    background: rgba(0, 0, 0, 0.55);
+    font-size: 0.75rem;
+    padding: 5px 12px;
+  }
+}

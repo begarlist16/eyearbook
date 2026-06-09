@@ -39,7 +39,9 @@
           <div class="page-inner">
             <div class="page-skeleton" id="leftSkeleton"></div>
             <img id="leftImg" src="" alt="Halaman kiri" draggable="false" />
-
+            <div class="hd-overlay" id="leftHdOverlay" onclick="if(PAGES[currentSpread]) openLightbox(currentSpread)">
+              <span class="hd-label">🔍 Lihat HD</span>
+            </div>
           </div>
         </div>
 
@@ -48,7 +50,9 @@
           <div class="page-inner">
             <div class="page-skeleton" id="rightSkeleton"></div>
             <img id="rightImg" src="" alt="Halaman kanan" draggable="false" />
-
+            <div class="hd-overlay" id="rightHdOverlay" onclick="const ri=currentSpread+1; if(!isSinglePage && PAGES[ri]) openLightbox(ri); else if(PAGES[currentSpread]) openLightbox(currentSpread)">
+              <span class="hd-label">🔍 Lihat HD</span>
+            </div>
           </div>
         </div>
 
@@ -110,11 +114,8 @@
         <div class="search-results" id="searchResults"></div>
       </div>
 
-      <!-- Right cluster: lightbox + fullscreen -->
+      <!-- Right cluster: fullscreen -->
       <div class="bar-cluster bar-right">
-        <button class="bar-btn" id="btnLightbox" onclick="openLightboxCurrent()" title="Lihat gambar penuh (L)">
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a1 1 0 002 0V5h2a1 1 0 000-2H5zm10 0a2 2 0 012 2v2a1 1 0 01-2 0V5h-2a1 1 0 010-2h2zM5 17a2 2 0 01-2-2v-2a1 1 0 012 0v2h2a1 1 0 010 2H5zm10 0a2 2 0 002-2v-2a1 1 0 00-2 0v2h-2a1 1 0 000 2h2z"/></svg>
-        </button>
         <button class="bar-btn" id="btnFull" onclick="toggleFullscreen()" title="Layar Penuh (F)">
           <svg id="fullIcon" viewBox="0 0 20 20" fill="currentColor">
             <path d="M3 4a1 1 0 011-1h4a1 1 0 010 2H5.414l2.293 2.293a1 1 0 11-1.414 1.414L4 6.414V8a1 1 0 01-2 0V4zm14 0a1 1 0 00-1-1h-4a1 1 0 000 2h1.586l-2.293 2.293a1 1 0 001.414 1.414L15 6.414V8a1 1 0 002 0V4zM3 16a1 1 0 001 1h4a1 1 0 000-2H6.414l2.293-2.293a1 1 0 00-1.414-1.414L5 13.586V12a1 1 0 00-2 0v4zm14 0a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 011.414-1.414L15 13.586V12a1 1 0 012 0v4z"/>

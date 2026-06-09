@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTouch();
   initPinch();
   initPan();
-  document.addEventListener('wheel', handleWheel, { passive: false });
+  document.addEventListener('wheel', handleWheel, { passive: true });
 
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#searchWrap') && !e.target.closest('#searchResults')) {
@@ -138,6 +138,7 @@ function loadPage(side, pageIndex) {
     img.src = '';
     img.style.opacity = '0';
     skeleton.classList.add('hidden');
+    img.closest('.page-slot').classList.remove('has-image');
     return;
   }
 
@@ -152,11 +153,13 @@ function loadPage(side, pageIndex) {
     img.alt = 'Halaman ' + page.page;
     img.style.opacity = '1';
     skeleton.classList.add('hidden');
+    img.closest('.page-slot').classList.add('has-image');
   };
   temp.onerror = () => {
     img.src = fullSrc;
     img.style.opacity = '0.4';
     skeleton.classList.add('hidden');
+    img.closest('.page-slot').classList.remove('has-image');
   };
   temp.src = fullSrc;
 }
@@ -379,7 +382,6 @@ function handleKey(e) {
   if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   { if (!lightboxOpen) { prevSpread(); e.preventDefault(); } else { lightboxNav(-1); e.preventDefault(); } }
   if (e.key === 'f' || e.key === 'F') { if (!lightboxOpen) toggleFullscreen(); }
   if (e.key === 'Escape') { if (lightboxOpen) closeLightbox(); }
-  if (e.key === 'l' || e.key === 'L') { if (!lightboxOpen) openLightboxCurrent(); }
 }
 
 // ── TOUCH / SWIPE ─────────────────────────────────────────────
@@ -495,11 +497,9 @@ function clampPan() {
 }
 
 // ── WHEEL ZOOM ────────────────────────────────────────────────
+// Scroll-to-zoom dinonaktifkan; gunakan overlay "Lihat HD" untuk lightbox
 function handleWheel(e) {
-  if (e.ctrlKey || e.metaKey) {
-    e.preventDefault();
-    adjustZoom(e.deltaY < 0 ? 0.1 : -0.1);
-  }
+  // no-op: zoom via scroll dihapus
 }
 
 // ── ZOOM ─────────────────────────────────────────────────────
@@ -687,16 +687,8 @@ let lightboxOpen = false;
 let lightboxIndex = 0;
 
 function initLightboxClickable() {
-  const leftImg  = document.getElementById('leftImg');
-  const rightImg = document.getElementById('rightImg');
-  leftImg.style.cursor  = 'zoom-in';
-  rightImg.style.cursor = 'zoom-in';
-  leftImg.addEventListener('click',  () => { if (PAGES[currentSpread]) openLightbox(currentSpread); });
-  rightImg.addEventListener('click', () => {
-    const ri = currentSpread + 1;
-    if (!isSinglePage && PAGES[ri]) openLightbox(ri);
-    else if (PAGES[currentSpread]) openLightbox(currentSpread);
-  });
+  // Klik gambar untuk lightbox sekarang ditangani oleh overlay .hd-overlay di HTML
+  // Cursor diatur via CSS pada overlay
 }
 
 function openLightboxCurrent() {
