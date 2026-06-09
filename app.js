@@ -64,6 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
       closeSearchResults();
     }
   });
+
+  initLightboxClickable();
 });
 
 function hideLoader() {
@@ -373,12 +375,11 @@ function goToPage(pageNum) {
 // ── KEYBOARD ─────────────────────────────────────────────────
 function handleKey(e) {
   if (e.target.tagName === 'INPUT') return;
-  if (e.key === 'ArrowRight' || e.key === 'PageDown') { nextSpread(); e.preventDefault(); }
-  if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   { prevSpread(); e.preventDefault(); }
-  if (e.key === '+' || e.key === '=') { adjustZoom(0.15);  e.preventDefault(); }
-  if (e.key === '-')                  { adjustZoom(-0.15); e.preventDefault(); }
-  if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); }
-  if (e.key === '0')                  { resetZoom(); }
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { if (!lightboxOpen) { nextSpread(); e.preventDefault(); } else { lightboxNav(1); e.preventDefault(); } }
+  if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   { if (!lightboxOpen) { prevSpread(); e.preventDefault(); } else { lightboxNav(-1); e.preventDefault(); } }
+  if (e.key === 'f' || e.key === 'F') { if (!lightboxOpen) toggleFullscreen(); }
+  if (e.key === 'Escape') { if (lightboxOpen) closeLightbox(); }
+  if (e.key === 'l' || e.key === 'L') { if (!lightboxOpen) openLightboxCurrent(); }
 }
 
 // ── TOUCH / SWIPE ─────────────────────────────────────────────
@@ -679,4 +680,90 @@ function escHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ── LIGHTBOX ─────────────────────────────────────────────────
+let lightboxOpen = false;
+let lightboxIndex = 0;
+
+function initLightboxClickable() {
+  const leftImg  = document.getElementById('leftImg');
+  const rightImg = document.getElementById('rightImg');
+  leftImg.style.cursor  = 'zoom-in';
+  rightImg.style.cursor = 'zoom-in';
+  leftImg.addEventListener('click',  () => { if (PAGES[currentSpread]) openLightbox(currentSpread); });
+  rightImg.addEventListener('click', () => {
+    const ri = currentSpread + 1;
+    if (!isSinglePage && PAGES[ri]) openLightbox(ri);
+    else if (PAGES[currentSpread]) openLightbox(currentSpread);
+  });
+}
+
+function openLightboxCurrent() {
+  openLightbox(currentSpread);
+}
+
+function openLightbox(pageIndex) {
+  lightboxIndex = pageIndex;
+  lightboxOpen  = true;
+  const overlay = document.getElementById('lightboxOverlay');
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  loadLightboxImage(pageIndex);
+}
+
+function loadLightboxImage(pageIndex) {
+  const page    = PAGES[pageIndex];
+  const img     = document.getElementById('lightboxImg');
+  const spinner = document.getElementById('lightboxSpinner');
+  const caption = document.getElementById('lightboxCaption');
+
+  img.style.opacity = '0';
+  spinner.classList.add('active');
+  caption.textContent = '';
+
+  // =s0 fetches highest-resolution / original size from Google Drive
+  const src = page.src + '=s0';
+
+  const temp = new Image();
+  temp.onload = () => {
+    img.src = src;
+    img.style.opacity = '1';
+    spinner.classList.remove('active');
+    caption.textContent = 'Halaman ' + page.page + (page.description ? ' — ' + page.description : '');
+  };
+  temp.onerror = () => {
+    img.src = src;
+    img.style.opacity = '0.5';
+    spinner.classList.remove('active');
+  };
+  temp.src = src;
+
+  document.getElementById('lightboxPrev').style.visibility = pageIndex > 0 ? 'visible' : 'hidden';
+  document.getElementById('lightboxNext').style.visibility = pageIndex < PAGES.length - 1 ? 'visible' : 'hidden';
+}
+
+function lightboxNav(dir) {
+  const next = lightboxIndex + dir;
+  if (next < 0 || next >= PAGES.length) return;
+  lightboxIndex = next;
+  loadLightboxImage(lightboxIndex);
+}
+
+function closeLightbox() {
+  lightboxOpen = false;
+  const overlay = document.getElementById('lightboxOverlay');
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  setTimeout(() => {
+    const img = document.getElementById('lightboxImg');
+    if (img) img.src = '';
+  }, 300);
+}
+
+function closeLightboxOnBackdrop(e) {
+  if (e.target === document.getElementById('lightboxOverlay') ||
+      e.target === document.getElementById('lightboxInner')) {
+    closeLightbox();
+  }
 }
