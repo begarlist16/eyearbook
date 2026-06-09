@@ -230,6 +230,7 @@ body.single-page .page-inner img {
   transition: opacity 0.25s ease;
   drag: none;
   pointer-events: none; /* prevent image drag interfering with pan */
+  image-rendering: high-quality;
 }
 
 /* Page number badges REMOVED */

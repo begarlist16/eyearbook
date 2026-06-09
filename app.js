@@ -140,7 +140,7 @@ function loadPage(side, pageIndex) {
   }
 
   const page = PAGES[pageIndex];
-  const fullSrc = page.src + '=w9999-h9999';
+  const fullSrc = page.src + '=s0';
   skeleton.classList.remove('hidden');
   img.style.opacity = '0';
 
@@ -181,8 +181,8 @@ function doFlip(direction, afterFlip) {
     const rect = sc.getBoundingClientRect();
     const W    = rect.width;
 
-    const curSrc = PAGES[currentSpread] ? PAGES[currentSpread].src + '=w9999-h9999' : null;
-    const nxtSrc = PAGES[nextSpreadIdx] ? PAGES[nextSpreadIdx].src + '=w9999-h9999' : null;
+    const curSrc = PAGES[currentSpread] ? PAGES[currentSpread].src + '=s0' : null;
+    const nxtSrc = PAGES[nextSpreadIdx] ? PAGES[nextSpreadIdx].src + '=s0' : null;
 
     const DURATION = 320;
 
@@ -249,11 +249,11 @@ function doFlip(direction, afterFlip) {
   const sc   = document.getElementById('spreadContainer');
   const rect = sc.getBoundingClientRect();
 
-  const curLeft  = PAGES[currentSpread]     ? PAGES[currentSpread].src + '=w9999-h9999'     : null;
-  const curRight = PAGES[currentSpread + 1] ? PAGES[currentSpread + 1].src + '=w9999-h9999' : null;
+  const curLeft  = PAGES[currentSpread]     ? PAGES[currentSpread].src + '=s0'     : null;
+  const curRight = PAGES[currentSpread + 1] ? PAGES[currentSpread + 1].src + '=s0' : null;
 
-  const nxtLeft  = PAGES[nextSpreadIdx]     ? PAGES[nextSpreadIdx].src + '=w9999-h9999'     : null;
-  const nxtRight = PAGES[nextSpreadIdx + 1] ? PAGES[nextSpreadIdx + 1].src + '=w9999-h9999' : null;
+  const nxtLeft  = PAGES[nextSpreadIdx]     ? PAGES[nextSpreadIdx].src + '=s0'     : null;
+  const nxtRight = PAGES[nextSpreadIdx + 1] ? PAGES[nextSpreadIdx + 1].src + '=s0' : null;
 
   const halfW = rect.width / 2;
 
