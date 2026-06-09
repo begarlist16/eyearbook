@@ -669,6 +669,7 @@ mark {
   max-width: calc(100vw - 120px);
   max-height: calc(100vh - 80px);
   overflow: auto;
+  cursor: default;
 }
 
 .lightbox-img {
@@ -681,8 +682,16 @@ mark {
   border-radius: 4px;
   box-shadow: 0 8px 48px rgba(0,0,0,0.7);
   transition: opacity 0.22s ease;
-  /* allow scrolling to see full original resolution */
+  cursor: zoom-in;
+}
+
+.lightbox-img.zoomed-full {
+  max-width: none;
+  max-height: none;
+  width: auto;
+  height: auto;
   cursor: zoom-out;
+  border-radius: 2px;
 }
 
 .lightbox-close {
@@ -832,14 +841,18 @@ mark {
   display: none;
 }
 
-/* On touch devices: always show overlay subtly */
+/* On touch devices: show only when .touch-active class is set via JS */
 @media (hover: none) {
   .hd-overlay {
-    opacity: 1;
-    background: transparent;
+    opacity: 0;
+    transition: opacity 0.22s ease;
   }
-  .hd-label {
-    background: rgba(0, 0, 0, 0.55);
+  .hd-overlay.touch-active {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.28);
+  }
+  .hd-overlay.touch-active .hd-label {
+    background: rgba(0, 0, 0, 0.72);
     font-size: 0.75rem;
     padding: 5px 12px;
   }

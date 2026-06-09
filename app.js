@@ -687,8 +687,36 @@ let lightboxOpen = false;
 let lightboxIndex = 0;
 
 function initLightboxClickable() {
-  // Klik gambar untuk lightbox sekarang ditangani oleh overlay .hd-overlay di HTML
-  // Cursor diatur via CSS pada overlay
+  // Touch: tap on page area shows HD overlay briefly, second tap or overlay tap opens lightbox
+  const slots = document.querySelectorAll('.page-inner');
+  slots.forEach(slot => {
+    const overlay = slot.querySelector('.hd-overlay');
+    if (!overlay) return;
+
+    let hideTimer = null;
+
+    // Touch: first tap shows overlay, overlay tap opens lightbox
+    slot.addEventListener('touchend', (e) => {
+      // Ignore if touch moved significantly (swipe)
+      if (!overlay.classList.contains('touch-active')) {
+        // Show overlay
+        overlay.classList.add('touch-active');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => {
+          overlay.classList.remove('touch-active');
+        }, 2000);
+        e.stopPropagation();
+      }
+    }, { passive: true });
+
+    // Hide overlay when touching elsewhere
+    document.addEventListener('touchstart', (e) => {
+      if (!slot.contains(e.target)) {
+        overlay.classList.remove('touch-active');
+        clearTimeout(hideTimer);
+      }
+    }, { passive: true });
+  });
 }
 
 function openLightboxCurrent() {
@@ -701,6 +729,43 @@ function openLightbox(pageIndex) {
   const overlay = document.getElementById('lightboxOverlay');
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // Reset zoom state on open
+  const img = document.getElementById('lightboxImg');
+  img.classList.remove('zoomed-full');
+
+  // Attach zoom-toggle only once
+  if (!img._zoomListenerAttached) {
+    img._zoomListenerAttached = true;
+    img.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const inner = document.getElementById('lightboxInner');
+      if (img.classList.contains('zoomed-full')) {
+        // Zoom out: back to fit
+        img.classList.remove('zoomed-full');
+        inner.style.maxWidth  = '';
+        inner.style.maxHeight = '';
+        inner.scrollTop = 0;
+        inner.scrollLeft = 0;
+      } else {
+        // Zoom in: show at original/natural size
+        img.classList.add('zoomed-full');
+        inner.style.maxWidth  = '100vw';
+        inner.style.maxHeight = '100vh';
+        // Center scroll on click point
+        const rect = img.getBoundingClientRect();
+        const ratioX = (e.clientX - rect.left) / rect.width;
+        const ratioY = (e.clientY - rect.top)  / rect.height;
+        requestAnimationFrame(() => {
+          const naturalW = img.naturalWidth  || img.offsetWidth;
+          const naturalH = img.naturalHeight || img.offsetHeight;
+          inner.scrollLeft = naturalW * ratioX - inner.clientWidth  / 2;
+          inner.scrollTop  = naturalH * ratioY - inner.clientHeight / 2;
+        });
+      }
+    });
+  }
+
   loadLightboxImage(pageIndex);
 }
 
@@ -709,6 +774,14 @@ function loadLightboxImage(pageIndex) {
   const img     = document.getElementById('lightboxImg');
   const spinner = document.getElementById('lightboxSpinner');
   const caption = document.getElementById('lightboxCaption');
+  const inner   = document.getElementById('lightboxInner');
+
+  // Reset zoom when switching pages
+  img.classList.remove('zoomed-full');
+  inner.style.maxWidth  = '';
+  inner.style.maxHeight = '';
+  inner.scrollTop  = 0;
+  inner.scrollLeft = 0;
 
   img.style.opacity = '0';
   spinner.classList.add('active');
@@ -747,8 +820,14 @@ function closeLightbox() {
   const overlay = document.getElementById('lightboxOverlay');
   overlay.classList.remove('open');
   document.body.style.overflow = '';
+
+  // Reset zoom state
+  const img   = document.getElementById('lightboxImg');
+  const inner = document.getElementById('lightboxInner');
+  if (img)   img.classList.remove('zoomed-full');
+  if (inner) { inner.style.maxWidth = ''; inner.style.maxHeight = ''; }
+
   setTimeout(() => {
-    const img = document.getElementById('lightboxImg');
     if (img) img.src = '';
   }, 300);
 }
