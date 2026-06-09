@@ -741,12 +741,10 @@ function loadLightboxImage(pageIndex) {
   const page    = PAGES[pageIndex];
   const img     = document.getElementById('lightboxImg');
   const spinner = document.getElementById('lightboxSpinner');
-  const caption = document.getElementById('lightboxCaption');
 
   img.style.opacity = '0';
   img.style.transform = '';
   spinner.classList.add('active');
-  caption.textContent = '';
 
   // Clear minimap
   const minimap = document.getElementById('lightboxMinimap');
@@ -758,7 +756,6 @@ function loadLightboxImage(pageIndex) {
     img.src = src;
     img.style.opacity = '1';
     spinner.classList.remove('active');
-    caption.textContent = 'Halaman ' + page.page + (page.description ? ' — ' + page.description : '');
     // Center image after load
     lbPanX = 0; lbPanY = 0;
     applyLightboxTransform();
