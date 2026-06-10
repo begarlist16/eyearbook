@@ -127,6 +127,22 @@ function renderSpread(animate, direction) {
 
   localStorage.setItem('bg16-spread', left);
   applyTransform();
+  prefetchAdjacentPages(left);
+}
+
+// ── BACKGROUND PRE-CACHE (via SW) ─────────────────────────────
+// Quietly fetch the next/prev 2 spreads so they land in the SW
+// image cache before the user needs them.
+function prefetchAdjacentPages(centerIndex) {
+  if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) return;
+  const step   = isSinglePage ? 1 : 2;
+  const radius = step * 2;   // prefetch 2 spreads ahead and behind
+  for (let i = centerIndex - radius; i <= centerIndex + radius; i++) {
+    if (i < 0 || i >= PAGES.length || i === centerIndex) continue;
+    const src = PAGES[i].src + '=s0';
+    // A no-op fetch — the SW intercepts it and stores the response
+    fetch(src, { mode: 'no-cors', priority: 'low' }).catch(() => {});
+  }
 }
 
 // On-demand load — no cache, no preload
